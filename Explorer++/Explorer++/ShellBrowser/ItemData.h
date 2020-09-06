@@ -23,6 +23,7 @@ struct BasicItemInfo_t
 		pidlComplete.reset(ILCloneFull(other.pidlComplete.get()));
 		pridl.reset(ILCloneChild(other.pridl.get()));
 		wfd = other.wfd;
+		llAllocationSize = other.llAllocationSize;
 		StringCchCopy(szDisplayName, SIZEOF_ARRAY(szDisplayName), other.szDisplayName);
 		isRoot = other.isRoot;
 	}
@@ -30,6 +31,7 @@ struct BasicItemInfo_t
 	unique_pidl_absolute pidlComplete;
 	unique_pidl_child pridl;
 	WIN32_FIND_DATA wfd;
+	LONGLONG llAllocationSize;
 	TCHAR szDisplayName[MAX_PATH];
 	bool isRoot;
 

@@ -264,6 +264,7 @@ int ShellBrowser::SetItemInformation(
 		hFirstFile = FindFirstFile(szPath, &wfd);
 
 		m_itemInfoMap[uItemId].wfd = wfd;
+		m_itemInfoMap[uItemId].llAllocationSize = GetAllocationSize(szPath);
 	}
 	else
 	{

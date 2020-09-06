@@ -8,6 +8,7 @@
 #include "CoreInterface.h"
 #include "DarkModeHelper.h"
 #include "ItemData.h"
+#include "NtDllHelper.h"
 #include "MainResource.h"
 #include "MassRenameDialog.h"
 #include "PreservedFolderState.h"
@@ -559,6 +560,75 @@ void ShellBrowser::QueryFullItemNameInternal(
 		SHGDN_FORPARSING);
 }
 
+__int64 ShellBrowser::GetAllocationSize(
+	TCHAR* szPath)
+{
+	HMODULE hNtdll = GetModuleHandle(L"ntdll.dll");
+	if (hNtdll == NULL)
+	{
+		// fwprintf_s(stderr, L"%s: Error %d calling GetModuleHandle(\"ntdll.dll\")\n", argv[0], GetLastError());
+		return -1;
+	}
+
+	NtQueryDirectoryFile = (PNtQueryDirectoryFile)
+		GetProcAddress(hNtdll, "NtQueryDirectoryFile");
+
+	if (NtQueryDirectoryFile == NULL)
+	{
+		// fwprintf_s(stderr, L"%s: Error %d calling GetProcAddress(\"NtQueryDirectoryFile\")\n", argv[0], GetLastError());
+		return -2;
+	}
+
+	NtCreateFile = (PNtCreateFile)
+		GetProcAddress(hNtdll, "NtCreateFile");
+
+	if (NtCreateFile == NULL)
+	{
+		// fwprintf_s(stderr, L"%s: Error %d calling GetProcAddress(\"NtCreateFile\")\n", argv[0], GetLastError());
+		return -3;
+	}
+
+	HANDLE hDir = NULL;
+	NTSTATUS status = STATUS_SUCCESS;
+
+	std::wstring prefix = L"\\??\\";
+	std::wstring path = prefix + szPath;
+	UNICODE_STRING dirname;
+	UNICODE_STRING fllename;
+	UNICODE_STRING upath;
+
+	RtlInitCountedUnicodeString(&upath, path.c_str(), (USHORT)(path.length() * sizeof(WCHAR)));
+	RtlSplitUnicodePath(&upath, &dirname, &fllename);
+
+	ACCESS_MASK accessDir = SYNCHRONIZE | FILE_LIST_DIRECTORY;  // 0x100001
+	OBJECT_ATTRIBUTES oaDir = { sizeof(OBJECT_ATTRIBUTES), NULL, &dirname, OBJ_CASE_INSENSITIVE };
+	IO_STATUS_BLOCK iosb;
+	ULONG shareAccess = FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE;
+	ULONG createOptionsDir = FILE_OPEN_FOR_BACKUP_INTENT | FILE_SYNCHRONOUS_IO_NONALERT | FILE_DIRECTORY_FILE; // 0x4021
+
+	memset(&iosb, 0, sizeof(iosb));
+	status = NtCreateFile(&hDir, accessDir, &oaDir, &iosb, NULL, 0, shareAccess, FILE_OPEN, createOptionsDir, NULL, 0);
+	if (status < STATUS_SUCCESS)
+	{
+		// fwprintf_s(stderr, L"%s: Error %#x calling NtCreateFile(dir)\n", argv[0], status);
+		return -4;
+	}
+
+	BYTE fibdi[sizeof(FILE_ID_BOTH_DIR_INFORMATION) + 260]; // Add 260 bytes to buffer to account for path size
+
+	memset(&fibdi, 0, sizeof(fibdi));
+
+	status = NtQueryDirectoryFile(hDir, NULL, NULL, NULL, &iosb, &fibdi, sizeof(fibdi), FileIdBothDirectoryInformation, TRUE, &fllename, TRUE);
+	if (status < STATUS_SUCCESS)
+	{
+		CloseHandle(hDir);
+		// fwprintf_s(stderr, L"%s: Error %#x calling NtQueryDirectoryFile(FileIdBothDirectoryInformation)\n", argv[0], status);
+		return -5;
+	}
+	CloseHandle(hDir);
+
+	return ((PFILE_ID_BOTH_DIR_INFORMATION)fibdi)->AllocationSize.QuadPart;
+}
 std::wstring ShellBrowser::GetDirectory() const
 {
 	return m_CurDir;
@@ -1548,6 +1618,7 @@ BasicItemInfo_t ShellBrowser::getBasicItemInfo(int internalIndex) const
 	basicItemInfo.pidlComplete.reset(ILCloneFull(itemInfo.pidlComplete.get()));
 	basicItemInfo.pridl.reset(ILCloneChild(itemInfo.pridl.get()));
 	basicItemInfo.wfd = itemInfo.wfd;
+	basicItemInfo.llAllocationSize = itemInfo.llAllocationSize;
 	StringCchCopy(basicItemInfo.szDisplayName, SIZEOF_ARRAY(basicItemInfo.szDisplayName),
 		itemInfo.szDisplayName);
 	basicItemInfo.isRoot = itemInfo.bDrive;

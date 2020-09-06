@@ -375,14 +375,21 @@ bool GetRealSizeColumnRawData(const BasicItemInfo_t &itemInfo, ULARGE_INTEGER &R
 		return false;
 	}
 
-	ULARGE_INTEGER realFileSizeTemp = { itemInfo.wfd.nFileSizeLow, itemInfo.wfd.nFileSizeHigh };
+	__int64 realFileSizeTemp = itemInfo.llAllocationSize;
 
-	if (realFileSizeTemp.QuadPart != 0 && (realFileSizeTemp.QuadPart % dwClusterSize) != 0)
+	if (realFileSizeTemp != 0 && (realFileSizeTemp % dwClusterSize) != 0)
 	{
-		realFileSizeTemp.QuadPart += dwClusterSize - (realFileSizeTemp.QuadPart % dwClusterSize);
+		if (realFileSizeTemp < dwClusterSize)
+			// Files whose allocation size have been calculated as smaller than the cluster size need no extra allocation -
+			// they can be included in the file system overhead.  Only files whose logical size is less than about 20% of the cluster
+			// size will have this smaller size.  Sizes between about 20% and 100% of the cluster size show an allocation size
+			// equal to the cluster size.
+			realFileSizeTemp = 0;
+		else
+			realFileSizeTemp += dwClusterSize - (realFileSizeTemp % dwClusterSize);
 	}
 
-	RealFileSize = realFileSizeTemp;
+	RealFileSize.QuadPart = realFileSizeTemp;
 
 	return true;
 }
