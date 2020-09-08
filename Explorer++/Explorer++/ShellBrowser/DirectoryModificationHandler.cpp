@@ -309,6 +309,7 @@ void ShellBrowser::ModifyItemInternal(const TCHAR *FileName)
 {
 	HANDLE hFirstFile;
 	ULARGE_INTEGER ulFileSize;
+	LONGLONG llAllocationSize;
 	LVITEM lvItem;
 	TCHAR fullFileName[MAX_PATH];
 	BOOL bFolder;
@@ -396,15 +397,14 @@ void ShellBrowser::ModifyItemInternal(const TCHAR *FileName)
 
 		ulFileSize.LowPart = m_itemInfoMap.at(iItemInternal).wfd.nFileSizeLow;
 		ulFileSize.HighPart = m_itemInfoMap.at(iItemInternal).wfd.nFileSizeHigh;
+		llAllocationSize = m_itemInfoMap.at(iItemInternal).llAllocationSize;
 
 		m_ulTotalDirSize.QuadPart -= ulFileSize.QuadPart;
 
 		if (ListView_GetItemState(m_hListView, iItem, LVIS_SELECTED) == LVIS_SELECTED)
 		{
-			ulFileSize.LowPart = m_itemInfoMap.at(iItemInternal).wfd.nFileSizeLow;
-			ulFileSize.HighPart = m_itemInfoMap.at(iItemInternal).wfd.nFileSizeHigh;
-
 			m_ulFileSelectionSize.QuadPart -= ulFileSize.QuadPart;
+			m_ulFileSelectionSizeOnDisk.QuadPart -= llAllocationSize;
 		}
 
 		StringCchCopy(fullFileName, SIZEOF_ARRAY(fullFileName), m_CurDir);

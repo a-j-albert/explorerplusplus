@@ -65,6 +65,7 @@ HRESULT ShellBrowser::BrowseFolder(PCIDLIST_ABSOLUTE pidlDirectory, bool addHist
 
 	m_ulTotalDirSize.QuadPart = 0;
 	m_ulFileSelectionSize.QuadPart = 0;
+	m_ulFileSelectionSizeOnDisk.QuadPart = 0;
 
 	SetActiveColumnSet();
 	SetViewModeInternal(m_folderSettings.viewMode);
