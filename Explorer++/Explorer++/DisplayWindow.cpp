@@ -401,7 +401,7 @@ void Explorerplusplus::UpdateDisplayWindowForMultipleFiles(const Tab &tab)
 		StringCchPrintf(szTotalSize, SIZEOF_ARRAY(szTotalSize), _T("%s: %s"), szTotalSizeString,
 			szTotalSizeFragment);
 
-		FormatSizeString(folderInfo.TotalSelectionSize, szTotalSizeFragment,
+		FormatSizeString(folderInfo.TotalSelectionSizeOnDisk, szTotalSizeFragment,
 			SIZEOF_ARRAY(szTotalSizeFragment), m_config->globalFolderSettings.forceSize,
 			m_config->globalFolderSettings.sizeDisplayFormat);
 
