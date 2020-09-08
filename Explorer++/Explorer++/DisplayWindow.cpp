@@ -369,9 +369,11 @@ void Explorerplusplus::UpdateDisplayWindowForMultipleFiles(const Tab &tab)
 {
 	TCHAR szNumSelected[64] = EMPTY_STRING;
 	TCHAR szTotalSize[64] = EMPTY_STRING;
+	TCHAR szTotalSizeOnDisk[64] = EMPTY_STRING;
 	TCHAR szTotalSizeFragment[32] = EMPTY_STRING;
 	TCHAR szMore[64];
 	TCHAR szTotalSizeString[64];
+	TCHAR szTotalSizeOnDiskString[64];
 	FolderInfo_t folderInfo;
 	int nSelected;
 
@@ -398,7 +400,18 @@ void Explorerplusplus::UpdateDisplayWindowForMultipleFiles(const Tab &tab)
 
 		StringCchPrintf(szTotalSize, SIZEOF_ARRAY(szTotalSize), _T("%s: %s"), szTotalSizeString,
 			szTotalSizeFragment);
+
+		FormatSizeString(folderInfo.TotalSelectionSize, szTotalSizeFragment,
+			SIZEOF_ARRAY(szTotalSizeFragment), m_config->globalFolderSettings.forceSize,
+			m_config->globalFolderSettings.sizeDisplayFormat);
+
+		LoadString(m_hLanguageModule, IDS_GENERAL_TOTALSIZEONDISK, szTotalSizeOnDiskString,
+			SIZEOF_ARRAY(szTotalSizeOnDiskString));
+
+		StringCchPrintf(szTotalSizeOnDisk, SIZEOF_ARRAY(szTotalSizeOnDisk), _T("%s: %s"), szTotalSizeOnDiskString,
+			szTotalSizeFragment);
 	}
 
 	DisplayWindow_BufferText(m_hDisplayWindow, szTotalSize);
+	DisplayWindow_BufferText(m_hDisplayWindow, szTotalSizeOnDisk);
 }

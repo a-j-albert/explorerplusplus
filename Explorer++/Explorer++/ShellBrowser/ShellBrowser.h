@@ -46,6 +46,7 @@ typedef struct
 {
 	ULARGE_INTEGER TotalFolderSize;
 	ULARGE_INTEGER TotalSelectionSize;
+	ULARGE_INTEGER TotalSelectionSizeOnDisk;
 } FolderInfo_t;
 
 typedef struct
@@ -538,6 +539,7 @@ private:
 	TCHAR m_CurDir[MAX_PATH];
 	ULARGE_INTEGER m_ulTotalDirSize;
 	ULARGE_INTEGER m_ulFileSelectionSize;
+	ULARGE_INTEGER m_ulFileSelectionSizeOnDisk;
 	BOOL m_bVirtualFolder;
 	BOOL m_bFolderVisited;
 	int m_nTotalItems;
