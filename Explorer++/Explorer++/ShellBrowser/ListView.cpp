@@ -524,6 +524,7 @@ void ShellBrowser::OnListViewItemChanged(const NMLISTVIEW *changeData)
 void ShellBrowser::UpdateFileSelectionInfo(int internalIndex, BOOL selected)
 {
 	ULARGE_INTEGER ulFileSize;
+	LONGLONG llAllocationSize;
 	BOOL isFolder;
 
 	isFolder = (m_itemInfoMap.at(internalIndex).wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
@@ -531,6 +532,8 @@ void ShellBrowser::UpdateFileSelectionInfo(int internalIndex, BOOL selected)
 
 	ulFileSize.LowPart = m_itemInfoMap.at(internalIndex).wfd.nFileSizeLow;
 	ulFileSize.HighPart = m_itemInfoMap.at(internalIndex).wfd.nFileSizeHigh;
+	llAllocationSize = m_itemInfoMap.at(internalIndex).llAllocationSize;
+
 
 	if (selected)
 	{
@@ -544,6 +547,7 @@ void ShellBrowser::UpdateFileSelectionInfo(int internalIndex, BOOL selected)
 		}
 
 		m_ulFileSelectionSize.QuadPart += ulFileSize.QuadPart;
+		m_ulFileSelectionSizeOnDisk.QuadPart += llAllocationSize;
 	}
 	else
 	{
@@ -557,6 +561,7 @@ void ShellBrowser::UpdateFileSelectionInfo(int internalIndex, BOOL selected)
 		}
 
 		m_ulFileSelectionSize.QuadPart -= ulFileSize.QuadPart;
+		m_ulFileSelectionSizeOnDisk.QuadPart -= llAllocationSize;
 	}
 }
 

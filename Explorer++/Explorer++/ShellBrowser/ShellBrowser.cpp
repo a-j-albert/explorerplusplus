@@ -1109,19 +1109,19 @@ void ShellBrowser::RemoveFilteredItems()
 void ShellBrowser::RemoveFilteredItem(int iItem, int iItemInternal)
 {
 	ULARGE_INTEGER ulFileSize;
-
-	if (ListView_GetItemState(m_hListView, iItem, LVIS_SELECTED) == LVIS_SELECTED)
-	{
-		ulFileSize.LowPart = m_itemInfoMap.at(iItemInternal).wfd.nFileSizeLow;
-		ulFileSize.HighPart = m_itemInfoMap.at(iItemInternal).wfd.nFileSizeHigh;
-
-		m_ulFileSelectionSize.QuadPart -= ulFileSize.QuadPart;
-	}
+	LONGLONG llAllocationSize;
 
 	/* Take the file size of the removed file away from the total
 	directory size. */
 	ulFileSize.LowPart = m_itemInfoMap.at(iItemInternal).wfd.nFileSizeLow;
 	ulFileSize.HighPart = m_itemInfoMap.at(iItemInternal).wfd.nFileSizeHigh;
+	llAllocationSize = m_itemInfoMap.at(iItemInternal).llAllocationSize;
+
+	if (ListView_GetItemState(m_hListView, iItem, LVIS_SELECTED) == LVIS_SELECTED)
+	{
+		m_ulFileSelectionSize.QuadPart -= ulFileSize.QuadPart;
+		m_ulFileSelectionSizeOnDisk.QuadPart -= llAllocationSize;
+	}
 
 	m_ulTotalDirSize.QuadPart -= ulFileSize.QuadPart;
 
@@ -1157,6 +1157,7 @@ void ShellBrowser::GetFolderInfo(FolderInfo_t *pFolderInfo)
 {
 	pFolderInfo->TotalFolderSize.QuadPart = m_ulTotalDirSize.QuadPart;
 	pFolderInfo->TotalSelectionSize.QuadPart = m_ulFileSelectionSize.QuadPart;
+	pFolderInfo->TotalSelectionSizeOnDisk.QuadPart = m_ulFileSelectionSizeOnDisk.QuadPart;
 }
 
 void ShellBrowser::DetermineFolderVirtual(PCIDLIST_ABSOLUTE pidlDirectory)

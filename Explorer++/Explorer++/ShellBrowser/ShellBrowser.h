@@ -46,6 +46,7 @@ typedef struct
 {
 	ULARGE_INTEGER TotalFolderSize;
 	ULARGE_INTEGER TotalSelectionSize;
+	ULARGE_INTEGER TotalSelectionSizeOnDisk;
 } FolderInfo_t;
 
 typedef struct
@@ -199,6 +200,7 @@ private:
 		unique_pidl_absolute pidlComplete;
 		unique_pidl_child pridl;
 		WIN32_FIND_DATA wfd;
+		LONGLONG llAllocationSize;
 		TCHAR szDisplayName[MAX_PATH];
 		int iIcon;
 
@@ -481,6 +483,7 @@ private:
 	std::optional<int> LocateItemByInternalIndex(int internalIndex) const;
 	void ApplyHeaderSortArrow();
 	void QueryFullItemNameInternal(int iItemInternal, TCHAR *szFullFileName, UINT cchMax) const;
+	__int64 GetAllocationSize(TCHAR* szPath);
 
 	int m_iRefCount;
 
@@ -536,6 +539,7 @@ private:
 	TCHAR m_CurDir[MAX_PATH];
 	ULARGE_INTEGER m_ulTotalDirSize;
 	ULARGE_INTEGER m_ulFileSelectionSize;
+	ULARGE_INTEGER m_ulFileSelectionSizeOnDisk;
 	BOOL m_bVirtualFolder;
 	BOOL m_bFolderVisited;
 	int m_nTotalItems;
